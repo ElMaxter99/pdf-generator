@@ -1,0 +1,25 @@
+<div class="app">
+  <h1>Generador de PDF desde JSON</h1>
+
+  <div class="controls">
+    <input type="file" accept="application/pdf" (change)="onFileSelected($event)" />
+    <input type="text" [(ngModel)]="pdfNameValue" placeholder="Nombre del PDF" />
+    <button (click)="generatePDF()">Descargar PDF</button>
+  </div>
+
+  <textarea [(ngModel)]="jsonInputValue" rows="8" placeholder="Pega aquí el JSON de anotaciones"
+    (input)="render()"></textarea>
+
+  <div class="viewer" *ngIf="pdfDoc">
+    <div class="toolbar">
+      <button (click)="prevPage()">⬅️ Anterior</button>
+      <span>Página {{ pageIndex() }} / {{ pdfDoc?.numPages }}</span>
+      <button (click)="nextPage()">➡️ Siguiente</button>
+    </div>
+
+    <div class="canvas-wrap">
+      <canvas #pdfCanvas></canvas>
+      <div #annotationsLayer class="annotations-layer"></div>
+    </div>
+  </div>
+</div>
