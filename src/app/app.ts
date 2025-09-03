@@ -130,32 +130,59 @@ export class AppComponent {
     }
   }
 
-  generatePDF() {
+  async generatePDF() {
+    if (!this.pdfDoc) {
+      alert('Sube un PDF primero');
+      return;
+    }
+
     let coords: Coord[] = [];
     try {
       coords = JSON.parse(this.jsonInput());
-    } catch (e) {
+    } catch {
       alert('JSON inválido');
       return;
     }
 
-    if (!coords.length) {
-      alert('No hay anotaciones para generar');
-      return;
-    }
+    const exportScale = 1;
 
-    const pdf = new jsPDF({ unit: 'pt', format: 'a4' });
-    const maxPage = Math.max(...coords.map((c) => c.page));
+    const firstPage = await this.pdfDoc.getPage(1);
+    const firstViewport = firstPage.getViewport({ scale: exportScale });
+    const pdf = new jsPDF({
+      unit: 'pt',
+      format: [firstViewport.width, firstViewport.height],
+    });
 
-    for (let page = 1; page <= maxPage; page++) {
-      if (page > 1) pdf.addPage();
-      const pageCoords = coords.filter((c) => c.page === page);
+    for (let pageNum = 1; pageNum <= this.pdfDoc.numPages; pageNum++) {
+      if (pageNum > 1) {
+        const p = await this.pdfDoc.getPage(pageNum);
+        const vp = p.getViewport({ scale: exportScale });
+        pdf.addPage([vp.width, vp.height]);
+      }
 
-      pageCoords.forEach((c) => {
-        pdf.setFontSize(c.size);
-        pdf.setTextColor(c.color);
-        pdf.text(c.value, c.x, c.y);
-      });
+      const page = await this.pdfDoc.getPage(pageNum);
+      const viewport = page.getViewport({ scale: exportScale });
+
+      const tCanvas = document.createElement('canvas');
+      const tCtx = tCanvas.getContext('2d')!;
+      tCanvas.width = Math.floor(viewport.width);
+      tCanvas.height = Math.floor(viewport.height);
+      await page.render({ canvasContext: tCtx, canvas: tCanvas, viewport }).promise;
+
+      const imgData = tCanvas.toDataURL('image/png');
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+
+      pdf.addImage(imgData, 'PNG', 0, 0, pageWidth, pageHeight);
+
+      coords
+        .filter((c) => c.page === pageNum)
+        .forEach((c) => {
+          pdf.setFontSize(c.size);
+          pdf.setTextColor(c.color);
+          const y = pageHeight - c.y;
+          pdf.text(c.value, c.x, y, { baseline: 'bottom' });
+        });
     }
 
     pdf.save(this.pdfName());

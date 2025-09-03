@@ -12,9 +12,9 @@
 
   <div class="viewer" *ngIf="pdfDoc">
     <div class="toolbar">
-      <button (click)="prevPage()">⬅️ Anterior</button>
+      <button (click)="prevPage()" [disabled]="pageIndex()===1">⬅️ Anterior</button>
       <span>Página {{ pageIndex() }} / {{ pdfDoc?.numPages }}</span>
-      <button (click)="nextPage()">➡️ Siguiente</button>
+      <button (click)="nextPage()" [disabled]="pageIndex()===pdfDoc?.numPages">➡️ Siguiente</button>
     </div>
 
     <div class="canvas-wrap">
