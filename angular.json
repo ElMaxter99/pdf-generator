@@ -61,10 +61,12 @@
           "builder": "@angular/build:dev-server",
           "configurations": {
             "production": {
-              "buildTarget": "pdf-generator:build:production"
+              "buildTarget": "pdf-generator:build:production",
+              "port": 2400
             },
             "development": {
-              "buildTarget": "pdf-generator:build:development"
+              "buildTarget": "pdf-generator:build:development",
+              "port": 2400
             }
           },
           "defaultConfiguration": "development"
